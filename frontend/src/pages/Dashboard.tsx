@@ -8,12 +8,42 @@ import {
   Clock,
   Sparkles,
   ArrowRight,
+  HelpCircle,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { StatCard } from '../components/ui/StatCard';
 import { Badge } from '../components/ui/Badge';
+import { TourOverlay } from '../components/ui/TourOverlay';
+import { useTour } from '../hooks/useTour';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="stats-row"]',
+    title: 'Platform Statistics',
+    content: 'At-a-glance metrics for your entire orchestration platform — total workflows launched, completion rates, active agents, and loaded skills.',
+    proTip: 'Stats update each time you visit the dashboard. Launch a workflow from the Studio to see numbers change.',
+  },
+  {
+    target: '[data-tour="recent-workflows"]',
+    title: 'Recent Workflows',
+    content: 'A live table of your most recent workflow runs. Click any row to navigate to the detailed workflow view with subtask breakdown and agent results.',
+    example: 'Try launching a workflow like "Compare React vs Vue for enterprise apps" from the Studio, then return here to see it listed.',
+  },
+  {
+    target: '[data-tour="agent-chart"]',
+    title: 'Agent Status Chart',
+    content: 'A donut chart showing the distribution of agent statuses — completed (green), running (indigo), failed (red), and idle (gray).',
+    proTip: 'Hover over chart segments for exact counts. The chart aggregates across all workflows.',
+  },
+  {
+    target: '[data-tour="quick-actions"]',
+    title: 'Quick Actions',
+    content: 'Jump directly to the most common tasks — launch a new workflow, manage agent skills, or review the audit trail.',
+    proTip: 'Start with "Launch Workflow" to kick off your first multi-agent task.',
+  },
+];
 
 const STATUS_COLORS: Record<string, string> = {
   completed: '#22c55e',
@@ -32,6 +62,7 @@ const BADGE_VARIANT: Record<string, string> = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const tour = useTour(TOUR_STEPS, 'dashboard');
   const [stats, setStats] = useState<any>(null);
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
@@ -114,19 +145,39 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-1">
-          <Bot className="h-7 w-7 text-indigo-400" />
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <Bot className="h-7 w-7 text-indigo-400" />
+            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          </div>
+          <p className="text-slate-400 text-sm ml-10">
+            Platform overview and recent activity
+          </p>
         </div>
-        <p className="text-slate-400 text-sm ml-10">
-          Platform overview and recent activity
-        </p>
+        <button
+          onClick={tour.start}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+        >
+          <HelpCircle className="w-4 h-4" /> Guided Tour
+        </button>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div data-tour="stats-row" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard
           label="Total Workflows"
           value={totalWorkflows}
@@ -157,7 +208,7 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Workflows Table */}
-        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-xl p-6">
+        <div data-tour="recent-workflows" className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">
             Recent Workflows
           </h2>
@@ -224,7 +275,7 @@ export default function Dashboard() {
         </div>
 
         {/* Agent Status Pie Chart */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6">
+        <div data-tour="agent-chart" className="bg-slate-900/60 border border-slate-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">
             Agent Status
           </h2>
@@ -277,7 +328,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div>
+      <div data-tour="quick-actions">
         <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {quickActions.map((action) => (

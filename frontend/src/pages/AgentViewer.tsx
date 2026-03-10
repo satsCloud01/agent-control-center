@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api';
 import { StatCard } from '../components/ui/StatCard';
 import { Badge } from '../components/ui/Badge';
+import { TourOverlay } from '../components/ui/TourOverlay';
+import { useTour } from '../hooks/useTour';
 import {
   Users,
   Bot,
@@ -12,7 +14,35 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  HelpCircle,
 } from 'lucide-react';
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="agent-stats"]',
+    title: 'Agent Statistics',
+    content: 'Overview of all registered agents across workflows — total count, completed, currently running, and failed.',
+    proTip: 'These counts aggregate all agents from every workflow run.',
+  },
+  {
+    target: '[data-tour="auto-refresh"]',
+    title: 'Auto-Refresh',
+    content: 'Toggle auto-refresh to poll agent status every 5 seconds. Great for monitoring a running workflow in real time.',
+    example: 'Launch a workflow in the Studio, then come here and enable auto-refresh to watch agents progress.',
+  },
+  {
+    target: '[data-tour="agent-relationships"]',
+    title: 'Agent Relationships',
+    content: 'Visual hierarchy showing supervisor agents and their child workers. The supervisor decomposes the problem; children execute subtasks concurrently.',
+    proTip: 'Each supervisor can spawn multiple child agents based on task decomposition.',
+  },
+  {
+    target: '[data-tour="agent-cards"]',
+    title: 'Agent Detail Cards',
+    content: 'Each card shows an agent\'s skill, provider, model, assigned task, and status. Click "Show Result" to expand the agent\'s output.',
+    example: 'The left border color indicates status: green = completed, blue = running, red = failed.',
+  },
+];
 
 interface Agent {
   agent_id: string;
@@ -55,6 +85,7 @@ const nodeColor: Record<string, string> = {
 };
 
 export default function AgentViewer() {
+  const tour = useTour(TOUR_STEPS, 'agent-viewer');
   const [agents, setAgents] = useState<Agent[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,6 +167,18 @@ export default function AgentViewer() {
 
   return (
     <div className="space-y-6">
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -149,12 +192,19 @@ export default function AgentViewer() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={tour.start}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+          >
+            <HelpCircle className="w-4 h-4" /> Guided Tour
+          </button>
+          <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
               autoRefresh
                 ? 'bg-indigo-600 text-white'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
+            data-tour="auto-refresh"
           >
             <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`} />
             Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
@@ -176,7 +226,7 @@ export default function AgentViewer() {
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div data-tour="agent-stats" className="grid grid-cols-4 gap-4">
         <StatCard
           label="Total Agents"
           value={total}
@@ -201,7 +251,7 @@ export default function AgentViewer() {
 
       {/* Relationship Visualization */}
       {relationships.length > 0 && (
-        <div className="rounded-xl bg-slate-900 border border-slate-800 p-6">
+        <div data-tour="agent-relationships" className="rounded-xl bg-slate-900 border border-slate-800 p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Agent Relationships</h2>
           <div className="space-y-8">
             {relationships.map((rel) => {
@@ -273,7 +323,7 @@ export default function AgentViewer() {
           <p className="text-slate-400">No agents registered yet</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div data-tour="agent-cards" className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {agents.map((agent) => {
             const isExpanded = expandedResults.has(agent.agent_id);
             const borderColor = statusColor[agent.status] || statusColor.idle;

@@ -1,7 +1,30 @@
 import { useState, useEffect } from 'react';
-import { ScrollText, Clock, ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ScrollText, Clock, ChevronDown, ChevronUp, Filter, HelpCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { Badge } from '../components/ui/Badge';
+import { TourOverlay } from '../components/ui/TourOverlay';
+import { useTour } from '../hooks/useTour';
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="workflow-history"]',
+    title: 'Workflow History',
+    content: 'A table of all workflow runs showing problem statement, status, start time, and subtask count. Click any row to expand and see the detailed event timeline for that workflow.',
+    example: 'Click a completed workflow row to see events like: workflow_started, decomposition, agent_spawned, agent_completed, synthesis, workflow_completed.',
+  },
+  {
+    target: '[data-tour="recent-events"]',
+    title: 'Recent Events Stream',
+    content: 'A chronological stream of all platform events across all workflows. Each event shows timestamp, type, agent name, workflow ID, and detail payload.',
+    proTip: 'Use the limit slider to control how many events are displayed. Click any event row to expand its full JSON detail.',
+  },
+  {
+    target: '[data-tour="event-limit"]',
+    title: 'Event Limit Slider',
+    content: 'Control how many recent events are loaded. Slide from 10 to 200 events. Higher limits show more history but may take longer to load.',
+    proTip: 'Start with 50 events for a quick overview, then increase if you need to trace a specific issue.',
+  },
+];
 
 const EVENT_BADGE: Record<string, string> = {
   workflow_started: 'bg-indigo-900/50 border border-indigo-700/50 text-indigo-300',
@@ -46,6 +69,7 @@ function tryParseJson(val: any): string {
 }
 
 export default function AuditLogs() {
+  const tour = useTour(TOUR_STEPS, 'audit-logs');
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [expandedWf, setExpandedWf] = useState<string | null>(null);
@@ -110,19 +134,39 @@ export default function AuditLogs() {
 
   return (
     <div className="p-6 space-y-8">
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-indigo-600/20 rounded-xl">
-          <ScrollText className="w-6 h-6 text-indigo-400" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-indigo-600/20 rounded-xl">
+            <ScrollText className="w-6 h-6 text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Audit Logs</h1>
+            <p className="text-sm text-slate-400">Workflow history and event stream</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Audit Logs</h1>
-          <p className="text-sm text-slate-400">Workflow history and event stream</p>
-        </div>
+        <button
+          onClick={tour.start}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+        >
+          <HelpCircle className="w-4 h-4" /> Guided Tour
+        </button>
       </div>
 
       {/* Workflow History Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
+      <div data-tour="workflow-history" className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-800">
           <h2 className="text-lg font-semibold text-white">Workflow History</h2>
         </div>
@@ -218,14 +262,14 @@ export default function AuditLogs() {
       </div>
 
       {/* Recent Events Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
+      <div data-tour="recent-events" className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <Clock className="w-4 h-4 text-slate-400" />
             Recent Events
           </h2>
           <div className="flex items-center gap-3">
-            <Filter className="w-4 h-4 text-slate-500" />
+            <Filter className="w-4 h-4 text-slate-500" data-tour="event-limit" />
             <label className="text-xs text-slate-400">Limit:</label>
             <input
               type="range"

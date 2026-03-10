@@ -3,6 +3,8 @@ import { api } from '../lib/api';
 import { Badge } from '../components/ui/Badge';
 import { Textarea } from '../components/ui/FormField';
 import { Modal } from '../components/ui/Modal';
+import { TourOverlay } from '../components/ui/TourOverlay';
+import { useTour } from '../hooks/useTour';
 import {
   BookOpen,
   Plus,
@@ -14,7 +16,35 @@ import {
   ChevronUp,
   Wrench,
   Tag,
+  HelpCircle,
 } from 'lucide-react';
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="loaded-skills"]',
+    title: 'Loaded Skills',
+    content: 'All currently registered agent skills displayed as cards. Each shows name, description, provider, model, tags for task matching, and available tools.',
+    proTip: 'Skills are matched to subtasks by tags — use descriptive tags like "research", "coding", "analysis" for best matching.',
+  },
+  {
+    target: '[data-tour="add-skill"]',
+    title: 'Add New Skill',
+    content: 'Create a new agent skill by pasting a .skill.md definition or uploading a file. Skills use YAML frontmatter for metadata and a markdown body for agent instructions.',
+    example: 'Paste the example from the Format Reference below, modify name and instructions, then click "Save Skill".',
+  },
+  {
+    target: '[data-tour="format-reference"]',
+    title: 'Skill Format Reference',
+    content: 'Expand this section to see the exact .skill.md format. YAML frontmatter needs: name, description, provider, model, tags, and tools.',
+    proTip: 'Available tools: web_search, code_execute, file_read, file_write, api_call. Only assign tools the skill needs.',
+  },
+  {
+    target: '[data-tour="available-tools"]',
+    title: 'Available Tools',
+    content: 'Reference of the 5 built-in tools you can assign to skills. Each tool gives agents specific capabilities during execution.',
+    example: 'A "researcher" skill: web_search + file_write. A "coder" skill: code_execute + file_read + file_write.',
+  },
+];
 
 interface Skill {
   id: string;
@@ -54,6 +84,7 @@ Instruction content for the agent goes here.
 Describe the behaviour, constraints, and output format.`;
 
 export default function SkillManager() {
+  const tour = useTour(TOUR_STEPS, 'skill-manager');
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'paste' | 'upload'>('paste');
@@ -144,14 +175,34 @@ export default function SkillManager() {
         </div>
       )}
 
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <BookOpen className="h-7 w-7 text-indigo-400" />
-        <h1 className="text-2xl font-bold text-white">Skill Manager</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-7 w-7 text-indigo-400" />
+          <h1 className="text-2xl font-bold text-white">Skill Manager</h1>
+        </div>
+        <button
+          onClick={tour.start}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+        >
+          <HelpCircle className="w-4 h-4" /> Guided Tour
+        </button>
       </div>
 
       {/* Loaded Skills Grid */}
-      <section>
+      <section data-tour="loaded-skills">
         <h2 className="text-lg font-semibold text-slate-200 mb-4">Loaded Skills</h2>
         {loading ? (
           <p className="text-slate-400">Loading skills...</p>
@@ -221,7 +272,7 @@ export default function SkillManager() {
       </section>
 
       {/* Add New Skill */}
-      <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+      <section data-tour="add-skill" className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Plus className="h-5 w-5 text-indigo-400" />
           <h2 className="text-lg font-semibold text-white">Add New Skill</h2>
@@ -285,7 +336,7 @@ export default function SkillManager() {
       </section>
 
       {/* Skill Format Reference */}
-      <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <section data-tour="format-reference" className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <button
           onClick={() => setShowReference(!showReference)}
           className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-800/50 transition-colors"
@@ -314,7 +365,7 @@ export default function SkillManager() {
       </section>
 
       {/* Available Tools Reference */}
-      <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+      <section data-tour="available-tools" className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Wrench className="h-5 w-5 text-indigo-400" />
           <h2 className="text-lg font-semibold text-white">Available Tools</h2>

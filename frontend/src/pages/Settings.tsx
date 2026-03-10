@@ -1,6 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Key, Eye, EyeOff, Server, Heart, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Eye, EyeOff, Server, Heart, Shield, HelpCircle } from 'lucide-react';
 import { api } from '../lib/api';
+import { TourOverlay } from '../components/ui/TourOverlay';
+import { useTour } from '../hooks/useTour';
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="api-keys"]',
+    title: 'API Keys (BYOK)',
+    content: 'Enter your API keys here. Keys are stored in your browser\'s localStorage only and sent as HTTP headers per request — they are never persisted on the server.',
+    example: 'Get an Anthropic key from console.anthropic.com, paste it here, and click Save. Then go to the Studio to launch workflows.',
+    proTip: 'You need at least one LLM key (Anthropic or OpenAI). Tavily key is optional — only needed for web search tool.',
+  },
+  {
+    target: '[data-tour="platform-config"]',
+    title: 'Platform Configuration',
+    content: 'Read-only view of the backend\'s default settings — provider, model, max tokens, and temperature. These are used when no overrides are specified in the workflow.',
+  },
+  {
+    target: '[data-tour="providers"]',
+    title: 'Available Providers',
+    content: 'Reference of supported LLM providers and their available models. Use these model names when creating custom skills.',
+    proTip: 'Claude Sonnet 4 is recommended for most tasks. Use Opus 4 for complex reasoning. GPT-4o is great for broad general tasks.',
+  },
+  {
+    target: '[data-tour="health-check"]',
+    title: 'Health Check',
+    content: 'Click "Run Health Check" to verify the backend API is running and responsive. Shows the raw health response from the server.',
+  },
+];
 
 const KEY_CONFIGS = [
   { label: 'OpenAI API Key', storageKey: 'acc_openai_key', placeholder: 'sk-...' },
@@ -14,6 +42,7 @@ const PROVIDERS: Record<string, string[]> = {
 };
 
 export default function Settings() {
+  const tour = useTour(TOUR_STEPS, 'settings');
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState(false);
@@ -66,19 +95,39 @@ export default function Settings() {
 
   return (
     <div className="p-6 space-y-8">
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-indigo-600/20 rounded-xl">
-          <SettingsIcon className="w-6 h-6 text-indigo-400" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-indigo-600/20 rounded-xl">
+            <SettingsIcon className="w-6 h-6 text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Settings</h1>
+            <p className="text-sm text-slate-400">API keys, platform configuration, and health</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
-          <p className="text-sm text-slate-400">API keys, platform configuration, and health</p>
-        </div>
+        <button
+          onClick={tour.start}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+        >
+          <HelpCircle className="w-4 h-4" /> Guided Tour
+        </button>
       </div>
 
       {/* API Keys */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-5">
+      <div data-tour="api-keys" className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-5">
         <div className="flex items-center gap-2 mb-1">
           <Key className="w-5 h-5 text-indigo-400" />
           <h2 className="text-lg font-semibold text-white">API Keys</h2>
@@ -134,7 +183,7 @@ export default function Settings() {
       </div>
 
       {/* Platform Config */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+      <div data-tour="platform-config" className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Server className="w-5 h-5 text-indigo-400" />
           <h2 className="text-lg font-semibold text-white">Platform Configuration</h2>
@@ -166,7 +215,7 @@ export default function Settings() {
       </div>
 
       {/* Available Providers */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+      <div data-tour="providers" className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
         <h2 className="text-lg font-semibold text-white">Available Providers</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(PROVIDERS).map(([provider, models]) => (
@@ -188,7 +237,7 @@ export default function Settings() {
       </div>
 
       {/* Health Check */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
+      <div data-tour="health-check" className="bg-slate-900/80 border border-slate-800 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Heart className="w-5 h-5 text-indigo-400" />
           <h2 className="text-lg font-semibold text-white">Health Check</h2>
