@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { TourOverlay } from "../components/ui/TourOverlay";
+import { useTour } from "../hooks/useTour";
 import {
   Bot,
   Brain,
@@ -18,13 +20,72 @@ import {
   Activity,
   CheckCircle2,
   Workflow,
+  HelpCircle,
 } from "lucide-react";
+
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="hero"]',
+    title: "Welcome to Agent Control Center",
+    content: "This platform lets you describe any problem in natural language, and autonomous AI agents will decompose it, execute subtasks concurrently, and synthesize results — all with full audit trails.",
+    example: 'Try a problem like: "Research and compare microservices vs monolith architecture for a fintech startup, including cost analysis, scalability, and team size recommendations."',
+    proTip: "Click \"Launch Platform\" to go to the Dashboard, or \"See How It Works\" to scroll through this page first.",
+  },
+  {
+    target: '[data-tour="how-it-works"]',
+    title: "4-Step Orchestration Flow",
+    content: "Every workflow follows four automated steps: (1) You describe the problem, (2) the LLM decomposes it into independent subtasks, (3) specialized agents execute in parallel, (4) results are synthesized into a unified response.",
+    example: 'For "Compare React vs Vue", the system might create subtasks: "Research React ecosystem", "Research Vue ecosystem", "Compare performance benchmarks", then synthesize all findings.',
+  },
+  {
+    target: '[data-tour="capabilities"]',
+    title: "Platform Capabilities",
+    content: "Six core capabilities power the platform: task decomposition, skill-based agent matching, concurrent execution, multi-provider LLM support (Claude + GPT-4), tool access (web search, code, files, APIs), and comprehensive audit logging.",
+    proTip: "Each capability is configurable per-agent through the skill definition system.",
+  },
+  {
+    target: '[data-tour="skills"]',
+    title: "Built-in Agent Skills",
+    content: "Three agent profiles come pre-configured: Web Researcher (searches and summarizes), Code Developer (writes and debugs code), and Data Analyst (analyzes data and generates charts). You can add custom skills via .skill.md files.",
+    example: "Go to the Skill Manager page to create custom skills tailored to your specific domain — like a \"Legal Analyst\" or \"Marketing Strategist\".",
+  },
+  {
+    target: '[data-tour="architecture"]',
+    title: "Architecture Overview",
+    content: "The platform uses a LangGraph StateGraph supervisor pattern. User input flows to the orchestrator, which decomposes tasks via an LLM planner, dispatches to parallel ReAct agents, and merges results through a synthesizer — all logged to SQLite.",
+    proTip: "Each agent is a LangChain ReAct agent with tool bindings. The supervisor manages state transitions via LangGraph.",
+  },
+  {
+    target: '[data-tour="metrics"]',
+    title: "Built for Scale",
+    content: "The platform supports N concurrent agents, 5 built-in tools, extensible skill definitions, and 100% audit trail coverage. Every agent spawn, tool call, and result is persisted.",
+  },
+  {
+    target: '[data-tour="cta"]',
+    title: "Ready to Start!",
+    content: "Head to the Dashboard to see platform stats, or go directly to the Workflow Studio to launch your first multi-agent workflow. Make sure to add your API key in Settings first!",
+    proTip: "Recommended first steps: Settings (add API key) -> Workflow Studio (launch a workflow) -> Agent Viewer (watch agents work) -> Audit Logs (review the trail).",
+  },
+];
 
 export default function Landing() {
   const navigate = useNavigate();
+  const tour = useTour(TOUR_STEPS, "landing");
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {/* Tour */}
+      {tour.isActive && (
+        <TourOverlay
+          step={tour.step}
+          currentStep={tour.currentStep}
+          totalSteps={tour.totalSteps}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onFinish={tour.finish}
+        />
+      )}
+
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-lg border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -34,17 +95,25 @@ export default function Landing() {
             </div>
             <span className="text-lg font-bold tracking-tight">Agent Control Center</span>
           </div>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="btn-primary px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold transition-colors"
-          >
-            Open Platform
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={tour.start}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-700 hover:border-indigo-500/50 text-slate-300 hover:text-white text-sm font-medium transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" /> Take a Tour
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="btn-primary px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold transition-colors"
+            >
+              Open Platform
+            </button>
+          </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
+      <section data-tour="hero" className="pt-32 pb-20 px-6">
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-8">
             <Zap className="w-4 h-4" />
@@ -69,6 +138,12 @@ export default function Landing() {
             >
               Launch Platform <ArrowRight className="w-5 h-5" />
             </button>
+            <button
+              onClick={tour.start}
+              className="px-8 py-3 rounded-lg border border-indigo-500/30 hover:border-indigo-500/60 bg-indigo-600/10 text-indigo-300 hover:text-white text-base font-semibold transition-colors flex items-center gap-2"
+            >
+              <HelpCircle className="w-5 h-5" /> Take a Tour
+            </button>
             <a
               href="#how-it-works"
               className="px-8 py-3 rounded-lg border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white text-base font-semibold transition-colors"
@@ -80,7 +155,7 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-6 border-t border-slate-800/50">
+      <section data-tour="how-it-works" id="how-it-works" className="py-20 px-6 border-t border-slate-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
@@ -139,7 +214,7 @@ export default function Landing() {
       </section>
 
       {/* Capabilities */}
-      <section className="py-20 px-6 bg-slate-900/30 border-t border-slate-800/50">
+      <section data-tour="capabilities" className="py-20 px-6 bg-slate-900/30 border-t border-slate-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
@@ -231,7 +306,7 @@ export default function Landing() {
       </section>
 
       {/* Agent Skills */}
-      <section className="py-20 px-6 border-t border-slate-800/50">
+      <section data-tour="skills" className="py-20 px-6 border-t border-slate-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
@@ -314,7 +389,7 @@ export default function Landing() {
       </section>
 
       {/* Architecture Overview */}
-      <section className="py-20 px-6 bg-slate-900/30 border-t border-slate-800/50">
+      <section data-tour="architecture" className="py-20 px-6 bg-slate-900/30 border-t border-slate-800/50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
@@ -395,7 +470,7 @@ export default function Landing() {
       </section>
 
       {/* Outcomes */}
-      <section className="py-20 px-6 border-t border-slate-800/50">
+      <section data-tour="metrics" className="py-20 px-6 border-t border-slate-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-4">
@@ -440,7 +515,7 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 border-t border-slate-800/50">
+      <section data-tour="cta" className="py-20 px-6 border-t border-slate-800/50">
         <div className="max-w-3xl mx-auto text-center">
           <div className="card bg-gradient-to-br from-indigo-600/20 via-slate-900/80 to-indigo-600/10 border border-indigo-500/20 rounded-2xl p-10 md:p-14">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Orchestrate?</h2>
