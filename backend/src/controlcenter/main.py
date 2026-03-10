@@ -68,16 +68,15 @@ app.include_router(audit.router)
 app.include_router(settings.router)
 
 
-@app.get("/")
-async def root():
-    return {"app": "Agent Control Center", "version": "2.0.0", "status": "running"}
-
-
 # Serve frontend static files in production (Docker)
 _static_dir = Path(__file__).resolve().parent.parent.parent / "static"
 if _static_dir.exists():
     from fastapi.staticfiles import StaticFiles
     from fastapi.responses import FileResponse
+
+    @app.get("/")
+    async def root():
+        return FileResponse(_static_dir / "index.html")
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
@@ -87,3 +86,7 @@ if _static_dir.exists():
         return FileResponse(_static_dir / "index.html")
 
     app.mount("/assets", StaticFiles(directory=str(_static_dir / "assets")), name="static")
+else:
+    @app.get("/")
+    async def root():
+        return {"app": "Agent Control Center", "version": "2.0.0", "status": "running"}
