@@ -11,3 +11,9 @@ venv/
 .pytest_cache/
 *.egg
 .DS_Store
+node_modules/
+frontend/dist/
+backend/.venv/
+backend/data/
+workspace/
+static/
