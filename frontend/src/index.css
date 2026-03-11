@@ -33,3 +33,38 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ── Light Mode Overrides ── */
+html.light body { background-color: #f8fafc; color: #1e293b; }
+html.light * { border-color: #e2e8f0; }
+html.light .bg-slate-950 { background-color: #ffffff !important; }
+html.light .bg-slate-900 { background-color: #f8fafc !important; }
+html.light .bg-slate-800 { background-color: #f1f5f9 !important; }
+html.light .bg-slate-800\/50 { background-color: rgba(241,245,249,.5) !important; }
+html.light .bg-slate-700 { background-color: #e2e8f0 !important; }
+html.light .text-white { color: #0f172a !important; }
+html.light .text-slate-100 { color: #1e293b !important; }
+html.light .text-slate-200 { color: #334155 !important; }
+html.light .text-slate-300 { color: #475569 !important; }
+html.light .text-slate-400 { color: #64748b !important; }
+html.light .text-slate-500 { color: #64748b !important; }
+html.light .border-slate-700 { border-color: #e2e8f0 !important; }
+html.light .border-slate-800 { border-color: #e2e8f0 !important; }
+html.light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) { border-color: #e2e8f0 !important; }
+html.light .ring-slate-700 { --tw-ring-color: #cbd5e1 !important; }
+html.light .hover\:bg-slate-800:hover { background-color: #e2e8f0 !important; }
+html.light .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
+html.light .hover\:bg-slate-900:hover { background-color: #f1f5f9 !important; }
+html.light .hover\:bg-slate-800\/60:hover { background-color: rgba(226,232,240,.6) !important; }
+html.light .placeholder-slate-500::placeholder { color: #94a3b8 !important; }
+html.light .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,.07), 0 4px 6px -4px rgba(0,0,0,.07) !important; }
+html.light .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,.07), 0 8px 10px -6px rgba(0,0,0,.07) !important; }
+html.light .card { background-color: #ffffff; border-color: #e2e8f0; }
+html.light .card-sm { background-color: #ffffff; border-color: #e2e8f0; }
+html.light .input { background-color: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
+html.light .select { background-color: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
+html.light .label { color: #475569; }
+html.light .table-header { background-color: #f1f5f9; }
+html.light .table-row:hover { background-color: #f8fafc; }
+html.light .table-cell { border-color: #e2e8f0; }
+

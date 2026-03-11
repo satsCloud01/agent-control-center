@@ -1,3 +1,4 @@
+import { ThemeProvider } from './context/ThemeContext'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
@@ -23,7 +24,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <ThemeProvider><BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
@@ -34,6 +35,6 @@ export default function App() {
         <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter></ThemeProvider>
   )
 }
